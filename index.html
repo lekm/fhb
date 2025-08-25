@@ -880,6 +880,140 @@
             opacity: 0.8;
         }
         
+        /* Profile Settings Accordion */
+        .profile-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            border: 2px solid #ecf0f1;
+        }
+        
+        .profile-settings-header:hover {
+            background: #e9ecef;
+            border-color: #3498db;
+        }
+        
+        .profile-settings-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .profile-settings-header h3::before {
+            content: "⚙️";
+            margin-right: 8px;
+        }
+        
+        .profile-settings-toggle {
+            background: none;
+            border: none;
+            color: #3498db;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+            padding: 5px;
+        }
+        
+        .profile-settings-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .profile-form-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+            background: #fdfdfd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-form-container.expanded {
+            max-height: 800px; /* Adjust based on content */
+            border: 1px solid #ecf0f1;
+        }
+        
+        .profile-form-content {
+            padding: 25px;
+        }
+        
+        .profile-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .profile-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .profile-incomplete {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .profile-quick-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .profile-quick-summary .summary-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .profile-quick-summary .summary-item::before {
+            content: "•";
+            margin-right: 5px;
+            color: #3498db;
+        }
+        
+        .edit-profile-prompt {
+            background: linear-gradient(135deg, #ff7b7b, #ff6b6b);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .edit-profile-prompt h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .edit-profile-prompt button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .edit-profile-prompt button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -976,72 +1110,88 @@
                     </div>
                 </div>
                 
-                <!-- Personal Information Form -->
-                <div class="profile-section">
-                    <h3>Personal Information</h3>
-                    
-                    <div class="form-field">
-                        <label for="citizenship">Citizenship</label>
-                        <select id="citizenship" onchange="updateProfile()">
-                            <option value="">Select citizenship</option>
-                            <option value="australian">Australian Citizen</option>
-                            <option value="permanent-resident">Permanent Resident</option>
-                            <option value="nz-citizen">New Zealand Citizen</option>
-                            <option value="other">Other</option>
-                        </select>
+                <!-- Profile Settings (Collapsible) -->
+                <div id="profile-settings-section">
+                    <!-- Header with toggle -->
+                    <div class="profile-settings-header" onclick="toggleProfileSettings()">
+                        <div>
+                            <h3>Personal Settings</h3>
+                            <div class="profile-quick-summary" id="profile-quick-summary">
+                                <!-- Quick summary will be populated here -->
+                            </div>
+                        </div>
+                        <button class="profile-settings-toggle" id="profile-settings-toggle">▼</button>
                     </div>
                     
-                    <div class="form-field">
-                        <label for="relationship-status">Relationship Status</label>
-                        <select id="relationship-status" onchange="updateProfile()">
-                            <option value="">Select status</option>
-                            <option value="single">Single</option>
-                            <option value="couple">Couple/Married</option>
-                            <option value="de-facto">De Facto</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label for="annual-income">Annual Income (before tax)</label>
-                        <input type="number" id="annual-income" placeholder="90000" min="0" step="1000" onchange="updateProfile()">
-                        <small>Enter your gross annual income in AUD</small>
-                    </div>
-                    
-                    <div class="form-field" id="partner-income-field" style="display: none;">
-                        <label for="partner-income">Partner's Annual Income</label>
-                        <input type="number" id="partner-income" placeholder="75000" min="0" step="1000" onchange="updateProfile()">
-                        <small>Enter partner's gross annual income in AUD</small>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label for="current-rent">Current Rent/Month</label>
-                        <input type="number" id="current-rent" placeholder="2000" min="0" step="50" onchange="updateProfile()">
-                        <small>Your current monthly housing cost</small>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label for="state">State/Territory</label>
-                        <select id="state" onchange="updateProfile()">
-                            <option value="">Select state</option>
-                            <option value="NSW">New South Wales</option>
-                            <option value="VIC" selected>Victoria</option>
-                            <option value="QLD">Queensland</option>
-                            <option value="SA">South Australia</option>
-                            <option value="WA">Western Australia</option>
-                            <option value="TAS">Tasmania</option>
-                            <option value="NT">Northern Territory</option>
-                            <option value="ACT">Australian Capital Territory</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label for="first-home-buyer">First Home Buyer?</label>
-                        <select id="first-home-buyer" onchange="updateProfile()">
-                            <option value="">Select status</option>
-                            <option value="yes" selected>Yes, never owned property</option>
-                            <option value="previous-owner">Previously owned, but not in last 10 years</option>
-                            <option value="no">No, currently own or recently owned</option>
-                        </select>
+                    <!-- Collapsible form container -->
+                    <div class="profile-form-container" id="profile-form-container">
+                        <div class="profile-form-content">
+                            <div class="profile-section">
+                                <div class="form-field">
+                                    <label for="citizenship">Citizenship</label>
+                                    <select id="citizenship" onchange="updateProfile()">
+                                        <option value="">Select citizenship</option>
+                                        <option value="australian">Australian Citizen</option>
+                                        <option value="permanent-resident">Permanent Resident</option>
+                                        <option value="nz-citizen">New Zealand Citizen</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-field">
+                                    <label for="relationship-status">Relationship Status</label>
+                                    <select id="relationship-status" onchange="updateProfile()">
+                                        <option value="">Select status</option>
+                                        <option value="single">Single</option>
+                                        <option value="couple">Couple/Married</option>
+                                        <option value="de-facto">De Facto</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-field">
+                                    <label for="annual-income">Annual Income (before tax)</label>
+                                    <input type="number" id="annual-income" placeholder="90000" min="0" step="1000" onchange="updateProfile()">
+                                    <small>Enter your gross annual income in AUD</small>
+                                </div>
+                                
+                                <div class="form-field" id="partner-income-field" style="display: none;">
+                                    <label for="partner-income">Partner's Annual Income</label>
+                                    <input type="number" id="partner-income" placeholder="75000" min="0" step="1000" onchange="updateProfile()">
+                                    <small>Enter partner's gross annual income in AUD</small>
+                                </div>
+                                
+                                <div class="form-field">
+                                    <label for="current-rent">Current Rent/Month</label>
+                                    <input type="number" id="current-rent" placeholder="2000" min="0" step="50" onchange="updateProfile()">
+                                    <small>Your current monthly housing cost</small>
+                                </div>
+                                
+                                <div class="form-field">
+                                    <label for="state">State/Territory</label>
+                                    <select id="state" onchange="updateProfile()">
+                                        <option value="">Select state</option>
+                                        <option value="NSW">New South Wales</option>
+                                        <option value="VIC" selected>Victoria</option>
+                                        <option value="QLD">Queensland</option>
+                                        <option value="SA">South Australia</option>
+                                        <option value="WA">Western Australia</option>
+                                        <option value="TAS">Tasmania</option>
+                                        <option value="NT">Northern Territory</option>
+                                        <option value="ACT">Australian Capital Territory</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-field">
+                                    <label for="first-home-buyer">First Home Buyer?</label>
+                                    <select id="first-home-buyer" onchange="updateProfile()">
+                                        <option value="">Select status</option>
+                                        <option value="yes" selected>Yes, never owned property</option>
+                                        <option value="previous-owner">Previously owned, but not in last 10 years</option>
+                                        <option value="no">No, currently own or recently owned</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1673,6 +1823,7 @@ Provide helpful, specific advice about this property considering their situation
         document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
             loadProfile();
+            initializeProfileSettings(); // Initialize accordion state
             updateProfile(); // Initialize schemes display
         });
         
@@ -1734,6 +1885,12 @@ Provide helpful, specific advice about this property considering their situation
             
             // Update main panel content
             updateMainPanelContent();
+            
+            // Update accordion summary
+            updateProfileQuickSummary();
+            
+            // Auto-collapse form if profile is complete
+            autoManageProfileSettings();
             
             // Save profile
             saveProfile();
@@ -2179,6 +2336,97 @@ Provide helpful, specific advice about this property considering their situation
             points.push('<li style="margin: 10px 0;">Get pre-approval to understand exact borrowing capacity</li>');
             
             return points.join('');
+        }
+        
+        // Profile Settings Accordion Functions
+        function toggleProfileSettings() {
+            const container = document.getElementById('profile-form-container');
+            const toggle = document.getElementById('profile-settings-toggle');
+            
+            if (container.classList.contains('expanded')) {
+                container.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+            } else {
+                container.classList.add('expanded');
+                toggle.classList.add('expanded');
+            }
+        }
+        
+        // Update the quick summary in the accordion header
+        function updateProfileQuickSummary() {
+            const summaryEl = document.getElementById('profile-quick-summary');
+            const isComplete = isProfileComplete();
+            
+            if (!isComplete) {
+                summaryEl.innerHTML = '<div class="summary-item" style="color: #856404;">⚠️ Profile incomplete</div>';
+                return;
+            }
+            
+            const totalIncome = userProfile.annualIncome + userProfile.partnerIncome;
+            const summaryItems = [];
+            
+            if (userProfile.citizenship) {
+                summaryItems.push(`<div class="summary-item">${getCitizenshipDisplayText(userProfile.citizenship)}</div>`);
+            }
+            
+            if (userProfile.relationshipStatus) {
+                summaryItems.push(`<div class="summary-item">${capitalizeFirst(userProfile.relationshipStatus)}</div>`);
+            }
+            
+            if (totalIncome > 0) {
+                summaryItems.push(`<div class="summary-item">${formatIncome(totalIncome)} income</div>`);
+            }
+            
+            if (userProfile.state) {
+                summaryItems.push(`<div class="summary-item">${userProfile.state}</div>`);
+            }
+            
+            summaryEl.innerHTML = summaryItems.join('');
+        }
+        
+        // Auto-manage profile settings visibility
+        function autoManageProfileSettings() {
+            const container = document.getElementById('profile-form-container');
+            const toggle = document.getElementById('profile-settings-toggle');
+            const isComplete = isProfileComplete();
+            
+            // If profile was just completed and form is open, close it after a brief delay
+            if (isComplete && container.classList.contains('expanded')) {
+                setTimeout(() => {
+                    container.classList.remove('expanded');
+                    toggle.classList.remove('expanded');
+                }, 1000); // Wait 1 second before auto-closing
+            }
+            
+            // If profile is incomplete, ensure form is open
+            if (!isComplete && !container.classList.contains('expanded')) {
+                container.classList.add('expanded');
+                toggle.classList.add('expanded');
+            }
+        }
+        
+        // Initialize profile settings state
+        function initializeProfileSettings() {
+            const isComplete = isProfileComplete();
+            const container = document.getElementById('profile-form-container');
+            const toggle = document.getElementById('profile-settings-toggle');
+            
+            // Show form if profile is incomplete, hide if complete
+            if (!isComplete) {
+                container.classList.add('expanded');
+                toggle.classList.add('expanded');
+            } else {
+                container.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+            }
+            
+            updateProfileQuickSummary();
+        }
+        
+        // Helper function to capitalize first letter
+        function capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
         }
         
         // Property Web Scraping and Cost Estimation
