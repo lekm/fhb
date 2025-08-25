@@ -1114,79 +1114,22 @@
         
         <main class="content">
             <section class="section">
-                <div class="eligibility-status">
-                    <h3>🎉 Great News: You're Eligible!</h3>
-                    <p>As a NZ citizen on a Special Category Visa (444), you can access most Australian first home buyer schemes.</p>
+                <div id="profile-status">
+                    <!-- Dynamic content based on user profile -->
                 </div>
             </section>
             
             <section class="section">
-                <h2 data-icon="🏠">Available Schemes</h2>
-                
-                <div class="schemes-grid">
-                    <div class="scheme-card">
-                        <div class="category">Federal</div>
-                        <h4>First Home Guarantee</h4>
-                        <ul>
-                            <li>5% deposit required</li>
-                            <li>No Lenders Mortgage Insurance</li>
-                            <li>Income limit $125K (you qualify)</li>
-                            <li>Available for existing and new homes</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="scheme-card">
-                        <div class="category">Federal</div>
-                        <h4>Help to Buy Scheme</h4>
-                        <ul>
-                            <li>2% deposit required</li>
-                            <li>Government contributes 30-40% equity</li>
-                            <li>Income limit $90K (you qualify)</li>
-                            <li>No rent on government share</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="scheme-card">
-                        <div class="category">Federal</div>
-                        <h4>First Home Super Saver</h4>
-                        <ul>
-                            <li>Access up to $50K from superannuation</li>
-                            <li>Available to NZ citizens</li>
-                            <li>Tax advantages on contributions</li>
-                            <li>Must use for deposit within 12 months</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="scheme-card">
-                        <div class="category">Victoria</div>
-                        <h4>Stamp Duty Exemption</h4>
-                        <ul>
-                            <li>FREE for properties ≤ $600K</li>
-                            <li>Partial exemption $600K - $750K</li>
-                            <li>Potential savings of $20K+</li>
-                            <li>Must be first home buyer</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="scheme-card">
-                        <div class="category">Victoria</div>
-                        <h4>First Home Owner Grant</h4>
-                        <ul>
-                            <li>$10,000 for new homes</li>
-                            <li>Properties ≤ $750K</li>
-                            <li>Ending June 2025</li>
-                            <li>Must live in property for 12 months</li>
-                        </ul>
-                    </div>
+                <h2 data-icon="🏠">Your Eligible Schemes</h2>
+                <div id="main-schemes-grid" class="schemes-grid">
+                    <!-- Dynamic schemes content -->
                 </div>
             </section>
             
             <section class="section">
-                <h2 data-icon="💰">Borrowing Capacity</h2>
-                <div class="borrowing-capacity">
-                    <h3>Estimated Borrowing Power</h3>
-                    <div class="amount">$400K - $500K</div>
-                    <p>Based on $90K income (varies by lender and expenses)</p>
+                <h2 data-icon="💰">Your Borrowing Capacity</h2>
+                <div id="borrowing-capacity-section" class="borrowing-capacity">
+                    <!-- Dynamic borrowing capacity content -->
                 </div>
             </section>
             
@@ -1346,21 +1289,9 @@
             </section>
 
             <section class="section">
-                <h2 data-icon="🎯">Cost-Neutral Analysis</h2>
-                <div class="recommendation">
-                    <h3>Recommended Purchase Price Range</h3>
-                    <div class="price-range">$600K - $650K</div>
-                    <p>This range maximizes stamp duty savings while keeping total ownership costs similar to your current $2,000/month rent</p>
-                </div>
-                
-                <div style="background: #ecf0f1; padding: 20px; border-radius: 10px; margin-top: 20px;">
-                    <h4 style="color: #2c3e50; margin-bottom: 15px;">Key Strategy Points:</h4>
-                    <ul style="color: #2c3e50;">
-                        <li style="margin: 10px 0;">Focus on properties under $600K for maximum stamp duty savings</li>
-                        <li style="margin: 10px 0;">Consider the Help to Buy scheme for lower deposit requirements</li>
-                        <li style="margin: 10px 0;">Factor in all ongoing costs when calculating affordability</li>
-                        <li style="margin: 10px 0;">Get pre-approval to understand exact borrowing capacity</li>
-                    </ul>
+                <h2 data-icon="🎯">Your Personalized Strategy</h2>
+                <div id="cost-neutral-analysis">
+                    <!-- Dynamic cost-neutral analysis content -->
                 </div>
             </section>
             
@@ -1670,13 +1601,21 @@
                 const propertyType = document.getElementById('property-type').value || 'apartment';
                 const strataFees = document.getElementById('strata-fees').value || '0';
                 
-                const systemPrompt = `You are a helpful first home buyer assistant for someone in Melbourne, Australia. 
+                const totalIncome = userProfile.annualIncome + userProfile.partnerIncome;
+                const eligibleSchemes = getEligibleSchemes(userProfile);
+                const relationshipStatus = userProfile.relationshipStatus || 'not specified';
+                const citizenship = getCitizenshipDisplayText(userProfile.citizenship) || 'not specified';
+                const state = getStateDisplayName(userProfile.state) || 'not specified';
+                
+                const systemPrompt = `You are a helpful first home buyer assistant for someone in Australia. 
 
 Current user profile:
-- Status: NZ citizen (eligible for first home buyer schemes)
-- Income: $90,000 annually
-- Currently paying: $2,000/month rent
-- Single buyer
+- Status: ${citizenship}
+- Income: ${formatIncome(totalIncome)} ${userProfile.partnerIncome > 0 ? 'combined (individual: ' + formatIncome(userProfile.annualIncome) + ', partner: ' + formatIncome(userProfile.partnerIncome) + ')' : 'annually'}
+- Currently paying: $${userProfile.currentRent || 0}/month rent
+- Relationship status: ${relationshipStatus}
+- State: ${state}
+- Eligible for ${eligibleSchemes.length} schemes: ${eligibleSchemes.map(s => s.name).join(', ') || 'none'}
 
 Current property being analyzed:
 - Price: $${propertyPrice}
@@ -1684,7 +1623,7 @@ Current property being analyzed:
 - Deposit: ${depositPercent}%
 - Strata fees: $${strataFees}/quarter
 
-Provide helpful, specific advice about this property considering their situation, Melbourne market conditions, and available first home buyer schemes. Be concise but informative.`;
+Provide helpful, specific advice about this property considering their situation, ${state} market conditions, and their available first home buyer schemes. Be concise but informative.`;
                 
                 const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                     method: 'POST',
@@ -1792,6 +1731,9 @@ Provide helpful, specific advice about this property considering their situation
             
             // Update eligible schemes
             updateEligibleSchemes();
+            
+            // Update main panel content
+            updateMainPanelContent();
             
             // Save profile
             saveProfile();
@@ -1965,6 +1907,279 @@ Provide helpful, specific advice about this property considering their situation
                 mainContent.classList.remove('sidebar-collapsed');
             }
         });
+        
+        // Update all main panel content based on profile
+        function updateMainPanelContent() {
+            updateProfileStatus();
+            updateMainSchemesGrid();
+            updateBorrowingCapacitySection();
+            updateCostNeutralAnalysis();
+        }
+        
+        // Update profile status section
+        function updateProfileStatus() {
+            const profileStatusEl = document.getElementById('profile-status');
+            
+            if (!isProfileComplete()) {
+                profileStatusEl.innerHTML = `
+                    <div style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3>👋 Welcome to Your First Home Buyer Assistant!</h3>
+                        <p style="margin: 15px 0;">Complete your profile in the sidebar to see personalized schemes and recommendations tailored to your situation.</p>
+                        <button onclick="toggleSidebar()" style="background: #ffc107; color: #856404; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                            Complete Your Profile
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const totalIncome = userProfile.annualIncome + userProfile.partnerIncome;
+            const schemes = getEligibleSchemes(userProfile);
+            const isEligible = schemes.length > 0;
+            
+            if (isEligible) {
+                const relationshipText = userProfile.relationshipStatus === 'single' ? 'single buyer' : 
+                                       userProfile.relationshipStatus === 'couple' ? 'couple' : 'de facto couple';
+                const citizenshipText = getCitizenshipDisplayText(userProfile.citizenship);
+                
+                profileStatusEl.innerHTML = `
+                    <div class="eligibility-status">
+                        <h3>🎉 Great News: You're Eligible!</h3>
+                        <p>As a ${citizenshipText} ${relationshipText} with ${formatIncome(totalIncome)} combined income in ${getStateDisplayName(userProfile.state)}, you qualify for <strong>${schemes.length} first home buyer scheme${schemes.length > 1 ? 's' : ''}</strong>.</p>
+                    </div>
+                `;
+            } else {
+                profileStatusEl.innerHTML = `
+                    <div style="background: #fee; border: 1px solid #e74c3c; color: #c0392b; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3>❌ Limited Eligibility</h3>
+                        <p>Based on your current profile, you may have limited access to first home buyer schemes. Consider reviewing your eligibility criteria or consulting with a mortgage broker.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Update main schemes grid
+        function updateMainSchemesGrid() {
+            const schemesGridEl = document.getElementById('main-schemes-grid');
+            const schemes = getEligibleSchemes(userProfile);
+            
+            if (schemes.length === 0) {
+                schemesGridEl.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px;">
+                        <h3 style="color: #6c757d; margin-bottom: 10px;">No Schemes Available</h3>
+                        <p style="color: #6c757d;">Complete your profile or adjust your criteria to see available schemes.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            schemesGridEl.innerHTML = schemes.map(scheme => `
+                <div class="scheme-card">
+                    <div class="category">${scheme.type}</div>
+                    <h4>${scheme.name}</h4>
+                    <p>${scheme.description}</p>
+                    ${getSchemeDetails(scheme)}
+                </div>
+            `).join('');
+        }
+        
+        // Update borrowing capacity section
+        function updateBorrowingCapacitySection() {
+            const borrowingSectionEl = document.getElementById('borrowing-capacity-section');
+            const totalIncome = userProfile.annualIncome + userProfile.partnerIncome;
+            
+            if (totalIncome === 0) {
+                borrowingSectionEl.innerHTML = `
+                    <h3>Enter Your Income</h3>
+                    <div class="amount">$0</div>
+                    <p>Add your income details in the sidebar to see estimated borrowing capacity</p>
+                `;
+                return;
+            }
+            
+            const borrowingCapacity = calculateBorrowingCapacity(totalIncome);
+            const minBorrowing = Math.round(borrowingCapacity * 0.85 / 1000) * 1000;
+            const maxBorrowing = Math.round(borrowingCapacity * 1.15 / 1000) * 1000;
+            
+            borrowingSectionEl.innerHTML = `
+                <h3>Estimated Borrowing Power</h3>
+                <div class="amount">$${(minBorrowing/1000).toFixed(0)}K - $${(maxBorrowing/1000).toFixed(0)}K</div>
+                <p>Based on ${formatIncome(totalIncome)} ${userProfile.partnerIncome > 0 ? 'combined ' : ''}income (varies by lender and expenses)</p>
+            `;
+        }
+        
+        // Update cost-neutral analysis
+        function updateCostNeutralAnalysis() {
+            const costAnalysisEl = document.getElementById('cost-neutral-analysis');
+            const totalIncome = userProfile.annualIncome + userProfile.partnerIncome;
+            const currentRent = userProfile.currentRent;
+            
+            if (totalIncome === 0 || currentRent === 0) {
+                costAnalysisEl.innerHTML = `
+                    <div style="background: #e9ecef; padding: 30px; border-radius: 15px; text-align: center;">
+                        <h3>Complete Your Profile</h3>
+                        <p style="margin: 15px 0;">Add your income and current rent to see personalized property recommendations and cost-neutral analysis.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const borrowingCapacity = calculateBorrowingCapacity(totalIncome);
+            const targetMonthly = currentRent;
+            const recommendedPrice = calculateRecommendedPrice(targetMonthly, borrowingCapacity);
+            
+            costAnalysisEl.innerHTML = `
+                <div class="recommendation">
+                    <h3>Recommended Purchase Price Range</h3>
+                    <div class="price-range">$${Math.round(recommendedPrice.min/1000)}K - $${Math.round(recommendedPrice.max/1000)}K</div>
+                    <p>This range keeps total ownership costs similar to your current $${currentRent.toLocaleString()}/month rent${getStateSpecificAdvice()}</p>
+                </div>
+                
+                <div style="background: #ecf0f1; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h4 style="color: #2c3e50; margin-bottom: 15px;">Your Strategy Points:</h4>
+                    <ul style="color: #2c3e50;">
+                        ${getPersonalizedStrategyPoints()}
+                    </ul>
+                </div>
+            `;
+        }
+        
+        // Helper functions
+        function isProfileComplete() {
+            return userProfile.citizenship && 
+                   userProfile.relationshipStatus && 
+                   userProfile.annualIncome > 0 && 
+                   userProfile.state && 
+                   userProfile.firstHomeBuyer;
+        }
+        
+        function getCitizenshipDisplayText(citizenship) {
+            const citizenshipMap = {
+                'australian': 'Australian citizen',
+                'permanent-resident': 'permanent resident',
+                'nz-citizen': 'New Zealand citizen',
+                'other': 'non-resident'
+            };
+            return citizenshipMap[citizenship] || citizenship;
+        }
+        
+        function getStateDisplayName(stateCode) {
+            const stateMap = {
+                'NSW': 'New South Wales',
+                'VIC': 'Victoria', 
+                'QLD': 'Queensland',
+                'SA': 'South Australia',
+                'WA': 'Western Australia',
+                'TAS': 'Tasmania',
+                'NT': 'Northern Territory',
+                'ACT': 'Australian Capital Territory'
+            };
+            return stateMap[stateCode] || stateCode;
+        }
+        
+        function formatIncome(income) {
+            if (income >= 1000000) {
+                return `$${(income/1000000).toFixed(1)}M`;
+            } else if (income >= 1000) {
+                return `$${Math.round(income/1000)}K`;
+            }
+            return `$${income.toLocaleString()}`;
+        }
+        
+        function getSchemeDetails(scheme) {
+            // Add specific details based on scheme type and user profile
+            const details = {
+                'First Home Guarantee': [
+                    '5% deposit required',
+                    'No Lenders Mortgage Insurance',
+                    'Available for new and existing homes',
+                    userProfile.relationshipStatus === 'single' ? 'Income limit $125K ✓' : 'Income limit $200K ✓'
+                ],
+                'Help to Buy': [
+                    '2% deposit required',
+                    'Government contributes 30-40% equity',
+                    'No rent on government share',
+                    'Available in major cities'
+                ],
+                'First Home Super Saver': [
+                    'Access up to $50K from superannuation',
+                    'Tax advantages on contributions',
+                    'Must use for deposit within 12 months',
+                    'Available to all eligible citizens'
+                ],
+                'Stamp Duty Exemption': [
+                    userProfile.state === 'VIC' ? 'FREE for properties ≤$600K' : 'State-specific thresholds apply',
+                    'Partial exemptions available',
+                    'Potential savings of $20K+',
+                    'Must be first home buyer'
+                ],
+                'First Home Owner Grant': [
+                    'Cash grant for eligible buyers',
+                    'State-specific amounts and conditions',
+                    'Must live in property for specified period',
+                    'New home requirements may apply'
+                ]
+            };
+            
+            const schemeDetails = details[scheme.name] || [scheme.description];
+            
+            return `
+                <ul>
+                    ${schemeDetails.map(detail => `<li>${detail}</li>`).join('')}
+                </ul>
+            `;
+        }
+        
+        function calculateRecommendedPrice(monthlyBudget, maxBorrowing) {
+            // Calculate based on monthly budget and borrowing capacity
+            const estimatedMonthlyRepayment = monthlyBudget * 0.7; // 70% for loan, 30% for other costs
+            const estimatedLoanAmount = estimatedMonthlyRepayment * 300; // Rough calculation for 30-year loan
+            
+            const budgetBasedMax = estimatedLoanAmount / 0.95; // Assuming 5% deposit
+            const borrowingBasedMax = maxBorrowing / 0.95;
+            
+            const maxPrice = Math.min(budgetBasedMax, borrowingBasedMax);
+            const minPrice = maxPrice * 0.8;
+            
+            return {
+                min: Math.max(minPrice, 400000), // Minimum realistic price
+                max: Math.min(maxPrice, 1000000) // Maximum recommended price
+            };
+        }
+        
+        function getStateSpecificAdvice() {
+            if (userProfile.state === 'VIC') {
+                return ' and maximizes Victoria\'s stamp duty exemptions';
+            } else if (userProfile.state === 'NSW') {
+                return ' and takes advantage of NSW first home buyer assistance';
+            }
+            return '';
+        }
+        
+        function getPersonalizedStrategyPoints() {
+            const points = [];
+            const schemes = getEligibleSchemes(userProfile);
+            
+            // State-specific advice
+            if (userProfile.state === 'VIC') {
+                points.push('<li style="margin: 10px 0;">Focus on properties under $600K for maximum stamp duty savings in Victoria</li>');
+            }
+            
+            // Scheme-specific advice
+            const hasHelpToBuy = schemes.some(s => s.name === 'Help to Buy');
+            const hasFirstHomeGuarantee = schemes.some(s => s.name === 'First Home Guarantee');
+            
+            if (hasHelpToBuy) {
+                points.push('<li style="margin: 10px 0;">Consider the Help to Buy scheme for 2% deposit with government equity</li>');
+            } else if (hasFirstHomeGuarantee) {
+                points.push('<li style="margin: 10px 0;">Use First Home Guarantee for 5% deposit without LMI</li>');
+            }
+            
+            points.push('<li style="margin: 10px 0;">Factor in all ongoing costs when calculating affordability</li>');
+            points.push('<li style="margin: 10px 0;">Get pre-approval to understand exact borrowing capacity</li>');
+            
+            return points.join('');
+        }
         
         // Property Web Scraping and Cost Estimation
         async function fetchPropertyDetails() {
