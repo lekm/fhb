@@ -17,16 +17,96 @@
             color: #333;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 350px;
+            background: white;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 900;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-320px);
+        }
+        
+        .sidebar-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 25px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 901;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.4rem;
+            margin: 0 0 8px 0;
+            font-weight: 600;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        .sidebar-content {
+            padding: 25px 20px;
+        }
+        
+        .sidebar-toggle {
+            position: fixed;
+            left: 10px;
+            top: 15px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 350px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content.sidebar-collapsed {
+            margin-left: 30px;
         }
         
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
+            margin: 20px;
         }
         
         .header {
@@ -661,7 +741,179 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Sidebar Form Styling */
+        .profile-section {
+            margin-bottom: 30px;
+        }
+        
+        .profile-section h3 {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .form-field {
+            margin-bottom: 18px;
+        }
+        
+        .form-field label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .form-field input, .form-field select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-field input:focus, .form-field select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .form-field small {
+            display: block;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        
+        .eligible-schemes {
+            margin-top: 25px;
+        }
+        
+        .eligible-schemes h3 {
+            color: #27ae60;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .eligible-schemes h3::before {
+            content: "✅";
+            margin-right: 8px;
+        }
+        
+        .scheme-item {
+            background: #f8f9fa;
+            border-left: 4px solid #27ae60;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .scheme-item h4 {
+            color: #2c3e50;
+            font-size: 0.95rem;
+            margin: 0 0 6px 0;
+        }
+        
+        .scheme-item p {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .scheme-tag {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+        
+        .no-schemes {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .profile-summary {
+            background: linear-gradient(135deg, #16a085, #1abc9c);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .profile-summary h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 0.85rem;
+        }
+        
+        .profile-stats .stat-item {
+            text-align: center;
+        }
+        
+        .profile-stats .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        
+        .profile-stats .stat-label {
+            opacity: 0.8;
+        }
+        
         @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+                z-index: 1001;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content.sidebar-collapsed {
+                margin-left: 0;
+            }
+            
+            .sidebar-toggle {
+                left: 15px;
+                top: 20px;
+                background: #3498db;
+                color: white;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+            
             .header h1 {
                 font-size: 2rem;
             }
@@ -694,76 +946,171 @@
     </style>
 </head>
 <body>
-    <!-- Settings Button -->
-    <button class="settings-btn" onclick="openSettings()" title="API Settings">⚙️</button>
-    
-    <!-- Settings Overlay -->
-    <div class="settings-overlay" id="settings-overlay">
-        <div class="settings-modal">
-            <div class="settings-header">
-                <h3>🔧 OpenRouter API Settings</h3>
-                <button class="close-btn" onclick="closeSettings()">×</button>
+    <div class="app-layout">
+        <!-- Sidebar Toggle -->
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Profile">👤</button>
+        
+        <!-- Settings Button -->
+        <button class="settings-btn" onclick="openSettings()" title="API Settings">⚙️</button>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Your Profile</h2>
+                <p>Configure your details to see eligible schemes</p>
             </div>
             
-            <div class="settings-form-group">
-                <label for="api-key">API Key</label>
-                <input type="password" id="api-key" placeholder="Enter your OpenRouter API key">
-                <small style="color: #7f8c8d;">Get your API key from <a href="https://openrouter.ai/keys" target="_blank" style="color: #3498db;">OpenRouter Dashboard</a></small>
-            </div>
-            
-            <div class="settings-form-group">
-                <label for="app-name">App Name (Optional)</label>
-                <input type="text" id="app-name" placeholder="First Home Buyer Assistant" value="First Home Buyer Assistant">
-            </div>
-            
-            <div class="settings-form-group">
-                <label for="app-url">App URL (Optional)</label>
-                <input type="url" id="app-url" placeholder="https://your-domain.com">
-            </div>
-            
-            <div class="settings-form-group">
-                <label for="selected-model">AI Model</label>
-                <select id="selected-model">
-                    <option value="">Select a model (test connection first)</option>
-                </select>
-            </div>
-            
-            <div class="api-status disconnected" id="api-status">
-                🔴 Disconnected - Enter API key and test connection
-            </div>
-            
-            <div class="settings-buttons">
-                <button class="btn-test" onclick="testConnection()">Test Connection</button>
-                <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
-                <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="container">
-        <header class="header">
-            <h1>First Home Buyer Report</h1>
-            <p class="subtitle">Melbourne, Australia - 2024/2025</p>
-            
-            <div class="profile-card">
-                <div class="profile-item">
-                    <div class="label">Status</div>
-                    <div class="value">NZ Citizen</div>
+            <div class="sidebar-content">
+                <!-- Profile Summary -->
+                <div class="profile-summary" id="profile-summary">
+                    <h3>Welcome!</h3>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="borrowing-estimate">$0</div>
+                            <div class="stat-label">Est. Borrowing</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="schemes-count">0</div>
+                            <div class="stat-label">Eligible Schemes</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="profile-item">
-                    <div class="label">Income</div>
-                    <div class="value">$90,000</div>
+                
+                <!-- Personal Information Form -->
+                <div class="profile-section">
+                    <h3>Personal Information</h3>
+                    
+                    <div class="form-field">
+                        <label for="citizenship">Citizenship</label>
+                        <select id="citizenship" onchange="updateProfile()">
+                            <option value="">Select citizenship</option>
+                            <option value="australian">Australian Citizen</option>
+                            <option value="permanent-resident">Permanent Resident</option>
+                            <option value="nz-citizen">New Zealand Citizen</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="relationship-status">Relationship Status</label>
+                        <select id="relationship-status" onchange="updateProfile()">
+                            <option value="">Select status</option>
+                            <option value="single">Single</option>
+                            <option value="couple">Couple/Married</option>
+                            <option value="de-facto">De Facto</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="annual-income">Annual Income (before tax)</label>
+                        <input type="number" id="annual-income" placeholder="90000" min="0" step="1000" onchange="updateProfile()">
+                        <small>Enter your gross annual income in AUD</small>
+                    </div>
+                    
+                    <div class="form-field" id="partner-income-field" style="display: none;">
+                        <label for="partner-income">Partner's Annual Income</label>
+                        <input type="number" id="partner-income" placeholder="75000" min="0" step="1000" onchange="updateProfile()">
+                        <small>Enter partner's gross annual income in AUD</small>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="current-rent">Current Rent/Month</label>
+                        <input type="number" id="current-rent" placeholder="2000" min="0" step="50" onchange="updateProfile()">
+                        <small>Your current monthly housing cost</small>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="state">State/Territory</label>
+                        <select id="state" onchange="updateProfile()">
+                            <option value="">Select state</option>
+                            <option value="NSW">New South Wales</option>
+                            <option value="VIC" selected>Victoria</option>
+                            <option value="QLD">Queensland</option>
+                            <option value="SA">South Australia</option>
+                            <option value="WA">Western Australia</option>
+                            <option value="TAS">Tasmania</option>
+                            <option value="NT">Northern Territory</option>
+                            <option value="ACT">Australian Capital Territory</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="first-home-buyer">First Home Buyer?</label>
+                        <select id="first-home-buyer" onchange="updateProfile()">
+                            <option value="">Select status</option>
+                            <option value="yes" selected>Yes, never owned property</option>
+                            <option value="previous-owner">Previously owned, but not in last 10 years</option>
+                            <option value="no">No, currently own or recently owned</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="profile-item">
-                    <div class="label">Current Rent</div>
-                    <div class="value">$2,000/mo</div>
-                </div>
-                <div class="profile-item">
-                    <div class="label">Relationship</div>
-                    <div class="value">Single</div>
+                
+                <!-- Eligible Schemes -->
+                <div class="eligible-schemes">
+                    <h3>Eligible Schemes</h3>
+                    <div id="schemes-list">
+                        <div class="no-schemes">
+                            Complete your profile to see eligible first home buyer schemes
+                        </div>
+                    </div>
                 </div>
             </div>
-        </header>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content" id="main-content">
+            <!-- Settings Overlay -->
+            <div class="settings-overlay" id="settings-overlay">
+                <div class="settings-modal">
+                    <div class="settings-header">
+                        <h3>🔧 OpenRouter API Settings</h3>
+                        <button class="close-btn" onclick="closeSettings()">×</button>
+                    </div>
+                    
+                    <div class="settings-form-group">
+                        <label for="api-key">API Key</label>
+                        <input type="password" id="api-key" placeholder="Enter your OpenRouter API key">
+                        <small style="color: #7f8c8d;">Get your API key from <a href="https://openrouter.ai/keys" target="_blank" style="color: #3498db;">OpenRouter Dashboard</a></small>
+                    </div>
+                    
+                    <div class="settings-form-group">
+                        <label for="app-name">App Name (Optional)</label>
+                        <input type="text" id="app-name" placeholder="First Home Buyer Assistant" value="First Home Buyer Assistant">
+                    </div>
+                    
+                    <div class="settings-form-group">
+                        <label for="app-url">App URL (Optional)</label>
+                        <input type="url" id="app-url" placeholder="https://your-domain.com">
+                    </div>
+                    
+                    <div class="settings-form-group">
+                        <label for="selected-model">AI Model</label>
+                        <select id="selected-model">
+                            <option value="">Select a model (test connection first)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="api-status disconnected" id="api-status">
+                        🔴 Disconnected - Enter API key and test connection
+                    </div>
+                    
+                    <div class="settings-buttons">
+                        <button class="btn-test" onclick="testConnection()">Test Connection</button>
+                        <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
+                        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="container">
+                <header class="header">
+                    <h1>First Home Buyer Report</h1>
+                    <p class="subtitle">Australia - 2024/2025</p>
+                    
+                    <div style="text-align: center; padding: 20px 0;">
+                        <p style="font-size: 1.1rem; opacity: 0.9;">Configure your profile in the sidebar to see personalized schemes and recommendations</p>
+                    </div>
+                </header>
         
         <main class="content">
             <section class="section">
@@ -1016,12 +1363,15 @@
                     </ul>
                 </div>
             </section>
+            
+            <footer class="footer">
+                <p>Report generated on August 25, 2024 • Data based on current government schemes and market conditions</p>
+            </footer>
         </main>
         
-        <footer class="footer">
-            <p>Report generated on August 25, 2024 • Data based on current government schemes and market conditions</p>
-        </footer>
-    </div>
+        </div> <!-- container -->
+    </main> <!-- main-content -->
+</div> <!-- app-layout -->
 
     <script>
         function calculateCosts() {
@@ -1381,7 +1731,240 @@ Provide helpful, specific advice about this property considering their situation
         });
         
         // Load settings on page load
-        document.addEventListener('DOMContentLoaded', loadSettings);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            loadProfile();
+            updateProfile(); // Initialize schemes display
+        });
+        
+        // Profile Management
+        let userProfile = {
+            citizenship: '',
+            relationshipStatus: '',
+            annualIncome: 0,
+            partnerIncome: 0,
+            currentRent: 0,
+            state: 'VIC',
+            firstHomeBuyer: 'yes'
+        };
+        
+        // Load profile from localStorage
+        function loadProfile() {
+            const saved = localStorage.getItem('user-profile');
+            if (saved) {
+                userProfile = { ...userProfile, ...JSON.parse(saved) };
+                
+                // Populate form fields
+                document.getElementById('citizenship').value = userProfile.citizenship;
+                document.getElementById('relationship-status').value = userProfile.relationshipStatus;
+                document.getElementById('annual-income').value = userProfile.annualIncome;
+                document.getElementById('partner-income').value = userProfile.partnerIncome;
+                document.getElementById('current-rent').value = userProfile.currentRent;
+                document.getElementById('state').value = userProfile.state;
+                document.getElementById('first-home-buyer').value = userProfile.firstHomeBuyer;
+                
+                // Show partner income field if in relationship
+                togglePartnerIncome();
+            }
+        }
+        
+        // Save profile to localStorage
+        function saveProfile() {
+            localStorage.setItem('user-profile', JSON.stringify(userProfile));
+        }
+        
+        // Update profile and refresh schemes
+        function updateProfile() {
+            // Get form values
+            userProfile.citizenship = document.getElementById('citizenship').value;
+            userProfile.relationshipStatus = document.getElementById('relationship-status').value;
+            userProfile.annualIncome = parseInt(document.getElementById('annual-income').value) || 0;
+            userProfile.partnerIncome = parseInt(document.getElementById('partner-income').value) || 0;
+            userProfile.currentRent = parseInt(document.getElementById('current-rent').value) || 0;
+            userProfile.state = document.getElementById('state').value;
+            userProfile.firstHomeBuyer = document.getElementById('first-home-buyer').value;
+            
+            // Show/hide partner income field
+            togglePartnerIncome();
+            
+            // Update profile summary
+            updateProfileSummary();
+            
+            // Update eligible schemes
+            updateEligibleSchemes();
+            
+            // Save profile
+            saveProfile();
+        }
+        
+        // Toggle partner income field visibility
+        function togglePartnerIncome() {
+            const partnerField = document.getElementById('partner-income-field');
+            const showPartnerIncome = userProfile.relationshipStatus === 'couple' || userProfile.relationshipStatus === 'de-facto';
+            partnerField.style.display = showPartnerIncome ? 'block' : 'none';
+        }
+        
+        // Update profile summary
+        function updateProfileSummary() {
+            const totalIncome = userProfile.annualIncome + userProfile.partnerIncome;
+            const borrowingEstimate = calculateBorrowingCapacity(totalIncome);
+            
+            document.getElementById('borrowing-estimate').textContent = borrowingEstimate > 0 ? 
+                `$${Math.round(borrowingEstimate/1000)}k` : '$0';
+        }
+        
+        // Calculate borrowing capacity
+        function calculateBorrowingCapacity(income) {
+            if (income <= 0) return 0;
+            // Simplified calculation: roughly 5-6x income depending on circumstances
+            const multiplier = income < 80000 ? 5.0 : income < 120000 ? 5.5 : 6.0;
+            return income * multiplier;
+        }
+        
+        // Update eligible schemes based on profile
+        function updateEligibleSchemes() {
+            const schemes = getEligibleSchemes(userProfile);
+            const schemesList = document.getElementById('schemes-list');
+            const schemesCount = document.getElementById('schemes-count');
+            
+            if (schemes.length === 0) {
+                schemesList.innerHTML = '<div class="no-schemes">Complete your profile to see eligible schemes</div>';
+                schemesCount.textContent = '0';
+                return;
+            }
+            
+            schemesCount.textContent = schemes.length.toString();
+            
+            schemesList.innerHTML = schemes.map(scheme => `
+                <div class="scheme-item">
+                    <div class="scheme-tag">${scheme.type}</div>
+                    <h4>${scheme.name}</h4>
+                    <p>${scheme.description}</p>
+                </div>
+            `).join('');
+        }
+        
+        // Get eligible schemes based on profile
+        function getEligibleSchemes(profile) {
+            const schemes = [];
+            const totalIncome = profile.annualIncome + profile.partnerIncome;
+            const isCouple = profile.relationshipStatus === 'couple' || profile.relationshipStatus === 'de-facto';
+            const isEligibleCitizen = ['australian', 'permanent-resident', 'nz-citizen'].includes(profile.citizenship);
+            const isFirstHomeBuyer = ['yes', 'previous-owner'].includes(profile.firstHomeBuyer);
+            
+            if (!isEligibleCitizen || !isFirstHomeBuyer) {
+                return schemes;
+            }
+            
+            // Federal Schemes
+            const singleIncomeLimit = 125000;
+            const coupleIncomeLimit = 200000;
+            const incomeLimit = isCouple ? coupleIncomeLimit : singleIncomeLimit;
+            
+            if (totalIncome <= incomeLimit) {
+                schemes.push({
+                    type: 'Federal',
+                    name: 'First Home Guarantee',
+                    description: '5% deposit, no LMI, available for new and existing homes'
+                });
+            }
+            
+            if (totalIncome <= 90000 && !isCouple) {
+                schemes.push({
+                    type: 'Federal',
+                    name: 'Help to Buy',
+                    description: '2% deposit, government equity contribution 30-40%'
+                });
+            } else if (totalIncome <= 120000 && isCouple) {
+                schemes.push({
+                    type: 'Federal',
+                    name: 'Help to Buy',
+                    description: '2% deposit, government equity contribution 30-40%'
+                });
+            }
+            
+            schemes.push({
+                type: 'Federal',
+                name: 'First Home Super Saver',
+                description: 'Access up to $50K from superannuation for deposit'
+            });
+            
+            // State-specific schemes
+            if (profile.state === 'VIC') {
+                schemes.push({
+                    type: 'Victoria',
+                    name: 'Stamp Duty Exemption',
+                    description: 'FREE for properties ≤$600K, partial exemption $600K-$750K'
+                });
+                
+                schemes.push({
+                    type: 'Victoria',
+                    name: 'First Home Owner Grant',
+                    description: '$10,000 for new homes ≤$750K (ending June 2025)'
+                });
+            } else if (profile.state === 'NSW') {
+                schemes.push({
+                    type: 'NSW',
+                    name: 'First Home Buyers Assistance',
+                    description: 'Stamp duty exemption for homes ≤$650K'
+                });
+            } else if (profile.state === 'QLD') {
+                schemes.push({
+                    type: 'Queensland',
+                    name: 'First Home Owner Grant',
+                    description: '$15,000 grant for new homes'
+                });
+            } else if (profile.state === 'SA') {
+                schemes.push({
+                    type: 'South Australia',
+                    name: 'First Home Owner Grant',
+                    description: '$15,000 grant for new homes'
+                });
+            } else if (profile.state === 'WA') {
+                schemes.push({
+                    type: 'Western Australia',
+                    name: 'First Home Owner Grant',
+                    description: '$10,000 grant for new and existing homes'
+                });
+            }
+            
+            return schemes;
+        }
+        
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            
+            if (window.innerWidth <= 768) {
+                // Mobile: toggle show class
+                sidebar.classList.toggle('show');
+            } else {
+                // Desktop: toggle collapsed class
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('sidebar-collapsed');
+            }
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            
+            if (window.innerWidth > 768) {
+                // Desktop mode - remove mobile classes
+                sidebar.classList.remove('show');
+                if (sidebar.classList.contains('collapsed')) {
+                    mainContent.classList.add('sidebar-collapsed');
+                } else {
+                    mainContent.classList.remove('sidebar-collapsed');
+                }
+            } else {
+                // Mobile mode - reset desktop classes
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+        });
         
         // Property Web Scraping and Cost Estimation
         async function fetchPropertyDetails() {
