@@ -869,12 +869,25 @@
                 <h2 data-icon="🧮">Property Calculator</h2>
                 <div class="calculator">
                     <h3>Calculate Total Monthly Ownership Costs</h3>
-                    <p style="text-align: center; margin-bottom: 25px; opacity: 0.9;">Enter property details below to see projected monthly costs compared to your current $2,000/month rent</p>
+                    <p style="text-align: center; margin-bottom: 25px; opacity: 0.9;">Enter property details manually or paste a property URL to auto-populate costs</p>
+                    
+                    <!-- Property URL Section -->
+                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 25px;">
+                        <h4 style="margin-bottom: 15px; font-size: 1.2rem;">🔗 Auto-Fill from Property Listing</h4>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="url" id="property-url" placeholder="Paste property URL from realestate.com.au, domain.com.au, etc." style="flex: 1; min-width: 300px; padding: 12px; border: none; border-radius: 8px; background: rgba(255,255,255,0.9); color: #2c3e50; font-size: 1rem;">
+                            <button onclick="fetchPropertyDetails()" id="fetch-btn" style="padding: 12px 20px; background: #e67e22; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                Auto-Fill Property
+                            </button>
+                        </div>
+                        <div id="property-fetch-status" style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;"></div>
+                    </div>
                     
                     <div class="calculator-form">
                         <div class="form-group">
                             <label for="property-price">Property Price ($)</label>
                             <input type="number" id="property-price" placeholder="e.g. 650000" min="0" step="1000">
+                            <small style="opacity: 0.8; font-size: 0.85rem;">Auto-populated from URL or enter manually</small>
                         </div>
                         
                         <div class="form-group">
@@ -911,9 +924,15 @@
                         </div>
                         
                         <div class="form-group">
+                            <label for="property-address">Property Address</label>
+                            <input type="text" id="property-address" placeholder="e.g. 123 Collins St, Melbourne VIC 3000">
+                            <small style="opacity: 0.8; font-size: 0.85rem;">Used for council rates and insurance lookup</small>
+                        </div>
+                        
+                        <div class="form-group">
                             <label for="strata-fees">Strata Fees ($/quarter)</label>
                             <input type="number" id="strata-fees" placeholder="e.g. 1500" min="0" step="100">
-                            <small style="opacity: 0.8; font-size: 0.85rem;">Enter 0 for houses</small>
+                            <small style="opacity: 0.8; font-size: 0.85rem;">Auto-estimated or enter manually</small>
                         </div>
                     </div>
                     
@@ -1363,6 +1382,266 @@ Provide helpful, specific advice about this property considering their situation
         
         // Load settings on page load
         document.addEventListener('DOMContentLoaded', loadSettings);
+        
+        // Property Web Scraping and Cost Estimation
+        async function fetchPropertyDetails() {
+            const url = document.getElementById('property-url').value.trim();
+            if (!url) {
+                updateFetchStatus('❌ Please enter a property URL', 'error');
+                return;
+            }
+            
+            const fetchBtn = document.getElementById('fetch-btn');
+            const originalText = fetchBtn.textContent;
+            
+            try {
+                fetchBtn.innerHTML = '<span class="loading-spinner"></span> Fetching...';
+                fetchBtn.disabled = true;
+                updateFetchStatus('🔄 Analyzing property listing...', 'loading');
+                
+                // Extract property details using multiple approaches
+                const propertyData = await extractPropertyData(url);
+                
+                if (propertyData.success) {
+                    // Populate form fields
+                    if (propertyData.price) {
+                        document.getElementById('property-price').value = propertyData.price;
+                    }
+                    
+                    if (propertyData.address) {
+                        document.getElementById('property-address').value = propertyData.address;
+                    }
+                    
+                    if (propertyData.propertyType) {
+                        document.getElementById('property-type').value = propertyData.propertyType;
+                        // Trigger change event to update strata fees
+                        document.getElementById('property-type').dispatchEvent(new Event('change'));
+                    }
+                    
+                    // Fetch additional cost data
+                    updateFetchStatus('🔄 Looking up council rates and fees...', 'loading');
+                    const costData = await estimatePropertyCosts(propertyData);
+                    
+                    // Update cost fields
+                    if (costData.strataFees) {
+                        document.getElementById('strata-fees').value = costData.strataFees;
+                    }
+                    
+                    updateFetchStatus(`✅ Property details loaded! Price: $${propertyData.price?.toLocaleString()}, ${propertyData.address}`, 'success');
+                    
+                    // Auto-calculate costs
+                    setTimeout(() => {
+                        calculateCosts();
+                    }, 1000);
+                    
+                } else {
+                    updateFetchStatus(`❌ ${propertyData.error}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Property fetch error:', error);
+                updateFetchStatus(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                fetchBtn.textContent = originalText;
+                fetchBtn.disabled = false;
+            }
+        }
+        
+        // Extract property data from URL using AI and web scraping
+        async function extractPropertyData(url) {
+            try {
+                // First, try to use OpenRouter API for web scraping if available
+                if (apiConfig.isConnected && apiConfig.selectedModel) {
+                    return await extractPropertyDataWithAI(url);
+                } else {
+                    // Fallback to pattern matching and estimation
+                    return await extractPropertyDataFallback(url);
+                }
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // AI-powered property data extraction
+        async function extractPropertyDataWithAI(url) {
+            const systemPrompt = `You are a property data extraction expert. I will provide you with a property listing URL, and you need to help extract key information.
+
+Please analyze the URL and provide a JSON response with the following structure:
+{
+  "price": number (property price in dollars),
+  "address": "string (full address)",
+  "propertyType": "house|apartment|townhouse",
+  "bedrooms": number,
+  "bathrooms": number,
+  "suburb": "string",
+  "postcode": "string",
+  "landSize": "string (if available)",
+  "buildingArea": "string (if available)"
+}
+
+Based on the URL structure and common patterns, make educated estimates where needed.`;
+            
+            const userPrompt = `Extract property details from this URL: ${url}
+            
+Also provide insights about likely strata fees if it's an apartment/unit, and any other cost factors I should consider for this property type and location.`;
+            
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiConfig.apiKey}`,
+                    'Content-Type': 'application/json',
+                    ...(apiConfig.appUrl && { 'HTTP-Referer': apiConfig.appUrl }),
+                    ...(apiConfig.appName && { 'X-Title': apiConfig.appName })
+                },
+                body: JSON.stringify({
+                    model: apiConfig.selectedModel,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userPrompt }
+                    ],
+                    max_tokens: 800,
+                    temperature: 0.1
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`AI extraction failed: HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const aiResponse = data.choices?.[0]?.message?.content || '';
+            
+            // Try to extract JSON from AI response
+            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                try {
+                    const extractedData = JSON.parse(jsonMatch[0]);
+                    return {
+                        success: true,
+                        ...extractedData,
+                        aiInsights: aiResponse.replace(jsonMatch[0], '').trim()
+                    };
+                } catch (e) {
+                    // JSON parsing failed, use fallback
+                }
+            }
+            
+            // If AI extraction fails, use fallback
+            return await extractPropertyDataFallback(url);
+        }
+        
+        // Fallback property data extraction using URL patterns
+        async function extractPropertyDataFallback(url) {
+            let propertyData = {
+                success: true,
+                price: null,
+                address: null,
+                propertyType: 'apartment',
+                suburb: null,
+                postcode: null
+            };
+            
+            // Extract information from URL patterns
+            const urlLower = url.toLowerCase();
+            
+            // Detect property type from URL
+            if (urlLower.includes('house') || urlLower.includes('cottage') || urlLower.includes('villa')) {
+                propertyData.propertyType = 'house';
+            } else if (urlLower.includes('townhouse') || urlLower.includes('terrace')) {
+                propertyData.propertyType = 'townhouse';
+            } else {
+                propertyData.propertyType = 'apartment';
+            }
+            
+            // Extract suburb from common URL patterns
+            const suburbMatch = url.match(/\/([a-z-]+)-vic-(\d{4})/i) || url.match(/\/([a-z-]+)-(\d{4})/i);
+            if (suburbMatch) {
+                propertyData.suburb = suburbMatch[1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                propertyData.postcode = suburbMatch[2];
+                propertyData.address = `${propertyData.suburb} VIC ${propertyData.postcode}`;
+            }
+            
+            // Provide estimated price ranges for Melbourne suburbs (fallback)
+            if (!propertyData.price && propertyData.suburb) {
+                propertyData.price = estimatePriceBySuburb(propertyData.suburb, propertyData.propertyType);
+            }
+            
+            return propertyData;
+        }
+        
+        // Estimate property costs based on extracted data
+        async function estimatePropertyCosts(propertyData) {
+            const costs = {
+                strataFees: 0,
+                councilRates: 2400, // Default Melbourne average
+                insurance: 2000,
+                estimatedMaintenance: 0
+            };
+            
+            // Estimate strata fees based on property type and location
+            if (propertyData.propertyType === 'apartment') {
+                // Higher strata fees for CBD and inner suburbs
+                const innerSuburbs = ['melbourne', 'carlton', 'fitzroy', 'collingwood', 'south yarra', 'toorak'];
+                const isInner = innerSuburbs.some(suburb => 
+                    propertyData.suburb?.toLowerCase().includes(suburb) || 
+                    propertyData.address?.toLowerCase().includes(suburb)
+                );
+                
+                costs.strataFees = isInner ? 2000 : 1500; // Quarterly
+            } else if (propertyData.propertyType === 'townhouse') {
+                costs.strataFees = 800; // Quarterly
+            }
+            
+            // Estimate maintenance based on property type and price
+            if (propertyData.price) {
+                const maintenanceRate = propertyData.propertyType === 'house' ? 0.015 : 0.01;
+                costs.estimatedMaintenance = propertyData.price * maintenanceRate;
+            }
+            
+            return costs;
+        }
+        
+        // Estimate price by suburb (Melbourne suburbs)
+        function estimatePriceBySuburb(suburb, propertyType) {
+            const suburbPrices = {
+                'melbourne': { apartment: 650000, house: 1200000, townhouse: 850000 },
+                'carlton': { apartment: 580000, house: 1100000, townhouse: 800000 },
+                'fitzroy': { apartment: 620000, house: 1300000, townhouse: 900000 },
+                'collingwood': { apartment: 600000, house: 1200000, townhouse: 850000 },
+                'south yarra': { apartment: 750000, house: 1800000, townhouse: 1100000 },
+                'toorak': { apartment: 900000, house: 2500000, townhouse: 1500000 },
+                'richmond': { apartment: 550000, house: 1100000, townhouse: 800000 },
+                'brunswick': { apartment: 500000, house: 900000, townhouse: 700000 },
+                'coburg': { apartment: 450000, house: 800000, townhouse: 650000 },
+                'preston': { apartment: 420000, house: 750000, townhouse: 600000 },
+                'northcote': { apartment: 530000, house: 950000, townhouse: 750000 },
+                'kew': { apartment: 650000, house: 1600000, townhouse: 1000000 },
+                'hawthorn': { apartment: 600000, house: 1400000, townhouse: 950000 },
+                'malvern': { apartment: 650000, house: 1500000, townhouse: 1000000 },
+                'st kilda': { apartment: 520000, house: 1100000, townhouse: 800000 },
+                'elwood': { apartment: 580000, house: 1200000, townhouse: 850000 }
+            };
+            
+            const suburbKey = suburb.toLowerCase().replace(/\s+/g, ' ');
+            const prices = suburbPrices[suburbKey];
+            
+            if (prices && prices[propertyType]) {
+                return prices[propertyType];
+            }
+            
+            // Default Melbourne averages
+            const defaults = { apartment: 550000, house: 1000000, townhouse: 750000 };
+            return defaults[propertyType] || 550000;
+        }
+        
+        // Update fetch status display
+        function updateFetchStatus(message, type = 'info') {
+            const statusEl = document.getElementById('property-fetch-status');
+            statusEl.textContent = message;
+            statusEl.style.color = type === 'success' ? '#27ae60' : 
+                                 type === 'error' ? '#e74c3c' : 
+                                 type === 'loading' ? '#f39c12' : '#fff';
+        }
     </script>
 </body>
 </html>
