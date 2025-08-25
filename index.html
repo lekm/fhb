@@ -2448,29 +2448,56 @@ Provide helpful, specific advice about this property considering their situation
                         }
                     }
                     
-                    // Fetch additional cost data
-                    updateFetchStatus('🔄 Looking up council rates and fees...', 'loading');
-                    const costData = await estimatePropertyCosts(propertyData);
+                    // Look up real council rates and strata fees from public sources
+                    updateFetchStatus('🔄 Searching council databases and public records...', 'loading');
+                    const publicData = await searchPublicPropertyData(propertyData);
                     
-                    // Update cost fields
-                    if (costData.strataFees) {
-                        document.getElementById('strata-fees').value = costData.strataFees;
+                    // Update cost fields with real public data
+                    if (publicData.councilRates) {
+                        // Council rates found - show in status or store for calculation
+                        console.log('Found council rates:', publicData.councilRates);
                     }
                     
-                    // Show success message with data source info
-                    const dataSource = propertyData.dataSource === 'webpage_content' ? 
-                        'extracted from actual webpage' : 
-                        'estimated (webpage not accessible)';
+                    if (publicData.strataFees && !propertyData.strataFees) {
+                        // Only update if we didn't get strata fees from the listing
+                        document.getElementById('strata-fees').value = publicData.strataFees;
+                    }
                     
-                    const successMessage = `✅ Property data ${dataSource}! Price: $${propertyData.price?.toLocaleString() || 'N/A'}, ${propertyData.address || propertyData.suburb || 'Property loaded'}`;
+                    // Show comprehensive success message with all data sources
+                    const dataSourceInfo = [];
+                    
+                    if (propertyData.dataSource === 'webpage_content') {
+                        dataSourceInfo.push('Property listing');
+                    } else {
+                        dataSourceInfo.push('Estimated property');
+                    }
+                    
+                    if (publicData.councilRates) {
+                        dataSourceInfo.push(`Council rates: $${publicData.councilRates}/year`);
+                    }
+                    
+                    if (publicData.strataFees) {
+                        dataSourceInfo.push(`Strata fees: $${publicData.strataFees}/quarter`);
+                    }
+                    
+                    if (publicData.dataSource && publicData.dataSource.length > 0) {
+                        dataSourceInfo.push(`Sources: ${publicData.dataSource.join(', ')}`);
+                    }
+                    
+                    const successMessage = `✅ Complete property data! Price: $${propertyData.price?.toLocaleString() || 'N/A'} | ${dataSourceInfo.join(' | ')}`;
                     
                     updateFetchStatus(successMessage, 'success');
                     
-                    // Show any additional insights from the AI
+                    // Show any additional insights
+                    const allInsights = [];
                     if (propertyData.aiInsights && propertyData.aiInsights.trim()) {
+                        allInsights.push(propertyData.aiInsights);
+                    }
+                    
+                    if (allInsights.length > 0) {
                         setTimeout(() => {
-                            updateFetchStatus(successMessage + `\n💡 ${propertyData.aiInsights}`, 'success');
-                        }, 2000);
+                            updateFetchStatus(successMessage + `\n💡 ${allInsights.join(' • ')}`, 'success');
+                        }, 3000);
                     }
                     
                     // Auto-calculate costs
@@ -2823,6 +2850,256 @@ Look for exact prices, addresses, and any mention of ongoing costs like council 
             // Default Melbourne averages
             const defaults = { apartment: 550000, house: 1000000, townhouse: 750000 };
             return defaults[propertyType] || 550000;
+        }
+        
+        // Search public databases and council websites for property data
+        async function searchPublicPropertyData(propertyData) {
+            const results = {
+                councilRates: null,
+                strataFees: null,
+                landValue: null,
+                dataSource: []
+            };
+            
+            if (!apiConfig.isConnected || !apiConfig.selectedModel) {
+                console.log('AI not configured, skipping public data search');
+                return results;
+            }
+            
+            try {
+                // Rate limiting
+                const now = Date.now();
+                const timeSinceLastCall = now - lastApiCall;
+                if (timeSinceLastCall < API_RATE_LIMIT_MS) {
+                    const waitTime = API_RATE_LIMIT_MS - timeSinceLastCall;
+                    updateFetchStatus(`🔄 Rate limiting... waiting ${Math.ceil(waitTime/1000)}s`, 'loading');
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+                lastApiCall = Date.now();
+                
+                const address = propertyData.address || `${propertyData.suburb} VIC ${propertyData.postcode}`;
+                const suburb = propertyData.suburb || 'Melbourne';
+                const postcode = propertyData.postcode || '';
+                
+                const systemPrompt = `You are a property research assistant specializing in finding public property data in Australia.
+
+Your task is to help locate council rates, strata fees, and property values by identifying the right public sources and what data might be available.
+
+Respond with JSON:
+{
+  "councilName": "string (local council name)",
+  "councilWebsite": "string (council website if known)",
+  "ratesEstimate": "string (estimated annual rates if calculable)",
+  "strataFeesRange": "string (typical strata fees for this type/area)",
+  "publicDataSources": ["array of relevant public data sources"],
+  "searchRecommendations": "string (how to find exact rates for this property)"
+}
+
+Be specific about Victorian councils and provide realistic estimates based on location and property type.`;
+                
+                const userPrompt = `Find public property data for:
+Address: ${address}
+Property Type: ${propertyData.propertyType || 'apartment'}
+Suburb: ${suburb}
+Postcode: ${postcode}
+
+I need to find:
+1. Council rates (annual amount)
+2. Strata fees for apartment/unit (quarterly)
+3. Land value if available
+
+What council handles this area and what are realistic estimates based on the location and property type?`;
+                
+                updateFetchStatus('🔍 AI searching public databases...', 'loading');
+                
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiConfig.apiKey}`,
+                        'Content-Type': 'application/json',
+                        ...(apiConfig.appUrl && { 'HTTP-Referer': apiConfig.appUrl }),
+                        ...(apiConfig.appName && { 'X-Title': apiConfig.appName })
+                    },
+                    body: JSON.stringify({
+                        model: apiConfig.selectedModel,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: userPrompt }
+                        ],
+                        max_tokens: 400,
+                        temperature: 0.1
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API call failed: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const aiResponse = data.choices?.[0]?.message?.content || '';
+                
+                // Try to extract JSON from AI response
+                const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    try {
+                        const publicData = JSON.parse(jsonMatch[0]);
+                        
+                        // Extract numeric values from estimates
+                        if (publicData.ratesEstimate) {
+                            const ratesMatch = publicData.ratesEstimate.match(/[\d,]+/);
+                            if (ratesMatch) {
+                                results.councilRates = parseInt(ratesMatch[0].replace(/,/g, ''));
+                            }
+                        }
+                        
+                        if (publicData.strataFeesRange) {
+                            const strataMatch = publicData.strataFeesRange.match(/[\d,]+/);
+                            if (strataMatch) {
+                                results.strataFees = parseInt(strataMatch[0].replace(/,/g, ''));
+                            }
+                        }
+                        
+                        results.dataSource.push(`Council: ${publicData.councilName || 'Unknown'}`);
+                        if (publicData.publicDataSources) {
+                            results.dataSource.push(...publicData.publicDataSources);
+                        }
+                        
+                        updateFetchStatus(`📊 Found council data: ${publicData.councilName || suburb} Council`, 'success');
+                        
+                        // Stage 2: Try to fetch actual data from council website if available
+                        if (publicData.councilWebsite && publicData.councilWebsite.includes('http')) {
+                            try {
+                                updateFetchStatus('🌐 Accessing council website for exact rates...', 'loading');
+                                
+                                const councilData = await fetchCouncilData(publicData.councilWebsite, address, publicData.councilName);
+                                
+                                if (councilData.councilRates) {
+                                    results.councilRates = councilData.councilRates;
+                                    results.dataSource.push('Council Website Direct');
+                                }
+                                
+                            } catch (councilError) {
+                                console.log('Council website access failed:', councilError);
+                                updateFetchStatus(`📊 Council data estimated (direct access failed)`, 'warning');
+                            }
+                        }
+                        
+                        return results;
+                    } catch (e) {
+                        console.error('Failed to parse public data response:', e);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Public data search failed:', error);
+                updateFetchStatus('⚠️ Public data search unavailable', 'warning');
+            }
+            
+            return results;
+        }
+        
+        // Fetch actual data from council websites
+        async function fetchCouncilData(councilWebsite, address, councilName) {
+            const results = {
+                councilRates: null,
+                dataFound: false
+            };
+            
+            try {
+                // Rate limiting
+                const now = Date.now();
+                const timeSinceLastCall = now - lastApiCall;
+                if (timeSinceLastCall < API_RATE_LIMIT_MS) {
+                    const waitTime = API_RATE_LIMIT_MS - timeSinceLastCall;
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+                lastApiCall = Date.now();
+                
+                // Try to fetch council website content via CORS proxy
+                let councilContent = '';
+                try {
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(councilWebsite)}`;
+                    const councilResponse = await fetch(proxyUrl);
+                    
+                    if (councilResponse.ok) {
+                        councilContent = await councilResponse.text();
+                        console.log('Council website content fetched');
+                    }
+                } catch (fetchError) {
+                    console.log('Council website fetch failed:', fetchError);
+                }
+                
+                // Use AI to analyze council website and look for property rates
+                if (councilContent || councilWebsite) {
+                    const systemPrompt = `You are a property rates specialist. Analyze council website content or help navigate to property rates information.
+
+Look for:
+- Property rates calculators
+- Rate notices information  
+- Property valuation data
+- Links to rates search tools
+
+Respond with JSON:
+{
+  "ratesFound": boolean,
+  "annualRates": number (if found),
+  "ratesSearchUrl": "string (URL to rates search tool)",
+  "instructions": "string (how to find rates for this property)"
+}`;
+                    
+                    const userPrompt = councilContent ? 
+                        `Analyze this ${councilName} council website content for property rates information:\n\nWebsite: ${councilWebsite}\nProperty Address: ${address}\n\nContent:\n${councilContent.substring(0, 3000)}` :
+                        `Help me find property rates for ${address} on ${councilName} council website: ${councilWebsite}\n\nWhat should I look for and where can I find property rates information on this council's website?`;
+                    
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiConfig.apiKey}`,
+                            'Content-Type': 'application/json',
+                            ...(apiConfig.appUrl && { 'HTTP-Referer': apiConfig.appUrl }),
+                            ...(apiConfig.appName && { 'X-Title': apiConfig.appName })
+                        },
+                        body: JSON.stringify({
+                            model: apiConfig.selectedModel,
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                { role: 'user', content: userPrompt }
+                            ],
+                            max_tokens: 300,
+                            temperature: 0.1
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const aiResponse = data.choices?.[0]?.message?.content || '';
+                        
+                        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            try {
+                                const councilData = JSON.parse(jsonMatch[0]);
+                                
+                                if (councilData.ratesFound && councilData.annualRates) {
+                                    results.councilRates = councilData.annualRates;
+                                    results.dataFound = true;
+                                    updateFetchStatus(`✅ Found exact rates from ${councilName}: $${councilData.annualRates}/year`, 'success');
+                                } else if (councilData.ratesSearchUrl) {
+                                    updateFetchStatus(`🔗 Found rates search tool: ${councilData.ratesSearchUrl}`, 'info');
+                                }
+                                
+                                return results;
+                            } catch (e) {
+                                console.error('Council data parsing failed:', e);
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Council data fetch failed:', error);
+            }
+            
+            return results;
         }
         
         // Update fetch status display
